@@ -1,11 +1,137 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<h1>Upload Page</h1>
-<hr style="margin-top:0.5rem;">
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload Excel</button>
-    </form>
+<div class="upload-container">
+    <h2 class="page-title">Upload Student Data</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="upload-card">
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.year.id_for_label }}">Select Year:</label>
+                    {{ form.year }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.session.id_for_label }}">Select Session (Month):</label>
+                    {{ form.session }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.file.id_for_label }}">Upload Excel File:</label>
+                <div class="file-upload-wrapper">
+                    {{ form.file }}
+                    <div class="file-upload-instructions">
+                        Supported format: .xlsx, .xls (Max size: 10MB)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Upload Data</button>
+                <button type="reset" class="btn btn-secondary">Clear</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="instructions-card">
+        <h3>Excel File Format Instructions</h3>
+        <p>Your Excel file should contain the following columns (headers in first row):</p>
+        
+        <div class="table-responsive">
+            <table class="format-table">
+                <thead>
+                    <tr>
+                        <th>Column Name</th>
+                        <th>Description</th>
+                        <th>Required</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>name</code></td>
+                        <td>Student's full name</td>
+                        <td>Yes</td>
+                        <td>John Doe</td>
+                    </tr>
+                    <tr>
+                        <td><code>course_name</code></td>
+                        <td>Name of the course</td>
+                        <td>Yes</td>
+                        <td>Python Programming</td>
+                    </tr>
+                    <tr>
+                        <td><code>course_hour</code></td>
+                        <td>Total course hours</td>
+                        <td>Yes</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td><code>scheme</code></td>
+                        <td>Scheme name/code</td>
+                        <td>No</td>
+                        <td>PMKVY 4.0</td>
+                    </tr>
+                    <tr>
+                        <td><code>mode</code></td>
+                        <td>offline/online</td>
+                        <td>Yes</td>
+                        <td>offline</td>
+                    </tr>
+                    <tr>
+                        <td><code>caste_category</code></td>
+                        <td>OBC/SC/ST/PWD/GENERAL</td>
+                        <td>Yes</td>
+                        <td>GENERAL</td>
+                    </tr>
+                    <tr>
+                        <td><code>center_name</code></td>
+                        <td>inderlok/janakpuri/karkardooma</td>
+                        <td>Yes</td>
+                        <td>inderlok</td>
+                    </tr>
+                    <tr>
+                        <td><code>trained</code></td>
+                        <td>TRUE/FALSE</td>
+                        <td>No</td>
+                        <td>TRUE</td>
+                    </tr>
+                    <tr>
+                        <td><code>certified</code></td>
+                        <td>TRUE/FALSE</td>
+                        <td>No</td>
+                        <td>FALSE</td>
+                    </tr>
+                    <tr>
+                        <td><code>placed</code></td>
+                        <td>TRUE/FALSE</td>
+                        <td>No</td>
+                        <td>FALSE</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> The year and session selected in the form will be automatically applied to all records in the uploaded file. The session field in the model will store combined value like "January 2024".
+        </div>
+        
+        <div class="download-template">
+            <a href="#" class="btn btn-outline">Download Sample Template</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

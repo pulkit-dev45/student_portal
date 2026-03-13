@@ -4,104 +4,131 @@
 <h2>Student Dashboard</h2>
 
 <div class="filters">
+    <select id="centerFilter">
+        <option value="">All Centers</option>
+        <option value="inderlok">Inderlok</option>
+        <option value="janakpuri">Janakpuri</option>
+        <option value="karkardooma">Karkardooma</option>
+    </select>
 
-<select id="centerFilter">
-<option value="">All Centers</option>
-<option value="inderlok">Inderlok</option>
-<option value="janakpuri">Janakpuri</option>
-<option value="karkardooma">Karkardooma</option>
-</select>
+    <select id="modeFilter">
+        <option value="">All Mode</option>
+        <option value="offline">Offline</option>
+        <option value="online">Online</option>
+    </select>
 
-<select id="modeFilter">
-<option value="">All Mode</option>
-<option value="offline">Offline</option>
-<option value="online">Online</option>
-</select>
+    <select id="casteFilter">
+        <option value="">All Caste</option>
+        <option value="OBC">OBC</option>
+        <option value="SC">SC</option>
+        <option value="ST">ST</option>
+        <option value="PWD">PWD</option>
+        <option value="GENERAL">GENERAL</option>
+    </select>
 
-<select id="casteFilter">
-<option value="">All Caste</option>
-<option value="OBC">OBC</option>
-<option value="SC">SC</option>
-<option value="ST">ST</option>
-<option value="PWD">PWD</option>
-<option value="GENERAL">GENERAL</option>
-</select>
+    <select id="trainedFilter">
+        <option value="">All (Trained)</option>
+        <option value="true">Trained</option>
+        <option value="false">Not Trained</option>
+    </select>
 
+    <select id="certifiedFilter">
+        <option value="">All (Certified)</option>
+        <option value="true">Certified</option>
+        <option value="false">Not Certified</option>
+    </select>
+
+    <select id="placedFilter">
+        <option value="">All (Placed)</option>
+        <option value="true">Placed</option>
+        <option value="false">Not Placed</option>
+    </select>
+    <button onclick="Clear()" class="clear-btn">Clear</button>
 </div>
 
-
 <table border="1" width="100%">
-<thead>
-<tr>
-<th>Name</th>
-<th>Course</th>
-<th>Hours</th>
-<th>Category</th>
-<th>Center</th>
-<th>Mode</th>
-<th>Caste</th>
-</tr>
-</thead>
-
-<tbody id="results">
-
-</tbody>
-
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Hours</th>
+            <th>Category</th>
+            <th>Center</th>
+            <th>Mode</th>
+            <th>Caste</th>
+            <th>Trained</th>
+            <th>Certified</th>
+            <th>Placed</th>
+        </tr>
+    </thead>
+    <tbody id="results">
+        <!-- Results will be populated here -->
+    </tbody>
 </table>
 
 <script>
+function filterStudents() {
+    let center = document.getElementById("centerFilter").value;
+    let mode = document.getElementById("modeFilter").value;
+    let caste = document.getElementById("casteFilter").value;
+    let trained = document.getElementById("trainedFilter").value;
+    let certified = document.getElementById("certifiedFilter").value;
+    let placed = document.getElementById("placedFilter").value;
 
-function filterStudents(){
+    fetch(`/filter-students/?center=${center}&mode=${mode}&caste=${caste}&trained=${trained}&certified=${certified}&placed=${placed}`)
+    .then(response => response.json())
+    .then(data => {
+        let results = document.getElementById("results");
+        results.innerHTML = "";
 
-let center = document.getElementById("centerFilter").value;
-let mode = document.getElementById("modeFilter").value;
-let caste = document.getElementById("casteFilter").value;
-
-fetch(`/filter-students/?center=${center}&mode=${mode}&caste=${caste}`)
-.then(response => response.json())
-.then(data => {
-
-let results = document.getElementById("results");
-results.innerHTML = "";
-
-data.results.forEach(student => {
-
-results.innerHTML += `
-<tr>
-<td>${student.name}</td>
-<td>${student.course_name}</td>
-<td>${student.course_hour}</td>
-<td>${student.course_category}</td>
-<td>${student.center_name}</td>
-<td>${student.mode}</td>
-<td>${student.caste_category}</td>
-</tr>
-`;
-
-});
-
-});
-
+        if (data.results.length === 0) {
+            results.innerHTML = `<tr><td colspan="10" style="text-align: center;">No students found</td></tr>`;
+        } else {
+            data.results.forEach(student => {
+                results.innerHTML += `
+                <tr>
+                    <td>${student.name}</td>
+                    <td>${student.course_name}</td>
+                    <td>${student.course_hour}</td>
+                    <td>${student.course_category}</td>
+                    <td>${student.center_name}</td>
+                    <td>${student.mode}</td>
+                    <td>${student.caste_category}</td>
+                    <td>${student.trained ? 'Yes' : 'No'}</td>
+                    <td>${student.certified ? 'Yes' : 'No'}</td>
+                    <td>${student.placed ? 'Yes' : 'No'}</td>
+                </tr>
+                `;
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        let results = document.getElementById("results");
+        results.innerHTML = `<tr><td colspan="10" style="text-align: center; color: red;">Error loading data</td></tr>`;
+    });
 }
-
-
+function Clear(){
+    document.getElementById("centerFilter").value = "";
+    document.getElementById("modeFilter").value = "";
+    document.getElementById("casteFilter").value = "";
+    document.getElementById("trainedFilter").value = "";
+    document.getElementById("certifiedFilter").value = "";
+    document.getElementById("placedFilter").value = "";
+    
+    // Reload the data with no filters
+    filterStudents();
+}
+// Add event listeners to all filters
 document.getElementById("centerFilter").addEventListener("change", filterStudents);
 document.getElementById("modeFilter").addEventListener("change", filterStudents);
 document.getElementById("casteFilter").addEventListener("change", filterStudents);
+document.getElementById("trainedFilter").addEventListener("change", filterStudents);
+document.getElementById("certifiedFilter").addEventListener("change", filterStudents);
+document.getElementById("placedFilter").addEventListener("change", filterStudents);
 
-
+// Load data on page load
 window.onload = filterStudents;
-results.innerHTML += `
-<tr>
-<td data-label="Name">${student.name}</td>
-<td data-label="Course">${student.course_name}</td>
-<td data-label="Hours">${student.course_hour}</td>
-<td data-label="Category">${student.course_category}</td>
-<td data-label="Center">${student.center_name}</td>
-<td data-label="Mode">${student.mode}</td>
-<td data-label="Caste">${student.caste_category}</td>
-</tr>
-`;
 </script>
 
 {% endblock content %}

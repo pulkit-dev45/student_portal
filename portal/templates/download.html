@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Download Reports</h2>
+
+<!-- Simple Filter Form -->
+<form method="GET" action="{% url 'download' %}" style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+    <select name="year">
+        <option value="">All Years</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="session">
+        <option value="">All Sessions</option>
+        {% for s in sessions %}
+        <option value="{{ s }}" {% if selected_session == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="center">
+        <option value="">All Centers</option>
+        <option value="inderlok" {% if selected_center == "inderlok" %}selected{% endif %}>Inderlok</option>
+        <option value="janakpuri" {% if selected_center == "janakpuri" %}selected{% endif %}>Janakpuri</option>
+        <option value="karkardooma" {% if selected_center == "karkardooma" %}selected{% endif %}>Karkardooma</option>
+    </select>
+
+    <button type="submit">Apply Filters</button>
+    <a href="{% url 'download' %}"><button type="button">Clear</button></a>
+</form>
+
+<!-- Simple Table -->
+<div style="overflow-x: auto;">
+    <table border="1" style="width:100%; border-collapse:collapse; font-size:14px;">
+        <thead style="background:#1976d2; color:white;">
+            <tr>
+                <th>Course Category</th>
+                <th>Course Name</th>
+                <th>Center</th>
+                <th>Session</th>
+                <th colspan="3">GENERAL</th>
+                <th colspan="3">OBC</th>
+                <th colspan="3">SC</th>
+                <th colspan="3">ST</th>
+                <th colspan="3">PWD</th>
+                <th>Total</th>
+            </tr>
+            <tr>
+                <th colspan="4"></th>
+                <th>Trained</th><th>Certified</th><th>Placed</th>
+                <th>Trained</th><th>Certified</th><th>Placed</th>
+                <th>Trained</th><th>Certified</th><th>Placed</th>
+                <th>Trained</th><th>Certified</th><th>Placed</th>
+                <th>Trained</th><th>Certified</th><th>Placed</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item.category }}</td>
+                <td>{{ item.course_name }}</td>
+                <td>{{ item.center_name }}</td>
+                <td>{{ item.session }}</td>
+                
+                <!-- GENERAL -->
+                <td>{{ item.GENERAL.trained }}</td>
+                <td>{{ item.GENERAL.certified }}</td>
+                <td>{{ item.GENERAL.placed }}</td>
+                
+                <!-- OBC -->
+                <td>{{ item.OBC.trained }}</td>
+                <td>{{ item.OBC.certified }}</td>
+                <td>{{ item.OBC.placed }}</td>
+                
+                <!-- SC -->
+                <td>{{ item.SC.trained }}</td>
+                <td>{{ item.SC.certified }}</td>
+                <td>{{ item.SC.placed }}</td>
+                
+                <!-- ST -->
+                <td>{{ item.ST.trained }}</td>
+                <td>{{ item.ST.certified }}</td>
+                <td>{{ item.ST.placed }}</td>
+                
+                <!-- PWD -->
+                <td>{{ item.PWD.trained }}</td>
+                <td>{{ item.PWD.certified }}</td>
+                <td>{{ item.PWD.placed }}</td>
+                
+                <!-- Total -->
+                <td>{{ item.GENERAL.total|add:item.OBC.total|add:item.SC.total|add:item.ST.total|add:item.PWD.total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="23" style="text-align:center; padding:20px;">No data found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot style="background:#e3f2fd; font-weight:bold;">
+            <tr>
+                <td colspan="4"><b>TOTAL</b></td>
+                
+                <!-- GENERAL Totals -->
+                <td>{{ totals.GENERAL.trained }}</td>
+                <td>{{ totals.GENERAL.certified }}</td>
+                <td>{{ totals.GENERAL.placed }}</td>
+                
+                <!-- OBC Totals -->
+                <td>{{ totals.OBC.trained }}</td>
+                <td>{{ totals.OBC.certified }}</td>
+                <td>{{ totals.OBC.placed }}</td>
+                
+                <!-- SC Totals -->
+                <td>{{ totals.SC.trained }}</td>
+                <td>{{ totals.SC.certified }}</td>
+                <td>{{ totals.SC.placed }}</td>
+                
+                <!-- ST Totals -->
+                <td>{{ totals.ST.trained }}</td>
+                <td>{{ totals.ST.certified }}</td>
+                <td>{{ totals.ST.placed }}</td>
+                
+                <!-- PWD Totals -->
+                <td>{{ totals.PWD.trained }}</td>
+                <td>{{ totals.PWD.certified }}</td>
+                <td>{{ totals.PWD.placed }}</td>
+                
+                <!-- Grand Total -->
+                <td>{{ totals.grand_total }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<!-- Export Button -->
+<div style="margin: 20px 0;">
+    <button onclick="exportTableToExcel()">Export to Excel</button>
+</div>
+
+<!-- Simple Summary -->
+<div style="margin-top: 20px; padding: 10px; background: #f5f5f5;">
+    <strong>Total Records: {{ totals.grand_total }}</strong>
+</div>
+
+<script>
+function exportTableToExcel() {
+    var table = document.querySelector('table');
+    var html = table.outerHTML;
+    var blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'student_report.xls';
+    link.click();
+}
+</script>
+
+{% endblock %}
