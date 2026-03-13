@@ -3,157 +3,205 @@
 {% block content %}
 <h2>Download Reports</h2>
 
-<!-- Simple Filter Form -->
-<form method="GET" action="{% url 'download' %}" style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap;">
-    <select name="year">
+<!-- Filters -->
+<div style="margin:20px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <select id="year" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
         <option value="">All Years</option>
         {% for y in years %}
-        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+        <option value="{{ y }}">{{ y }}</option>
         {% endfor %}
     </select>
 
-    <select name="session">
+    <select id="session" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
         <option value="">All Sessions</option>
         {% for s in sessions %}
-        <option value="{{ s }}" {% if selected_session == s %}selected{% endif %}>{{ s }}</option>
+        <option value="{{ s }}">{{ s }}</option>
         {% endfor %}
     </select>
 
-    <select name="center">
+    <select id="center" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
         <option value="">All Centers</option>
-        <option value="inderlok" {% if selected_center == "inderlok" %}selected{% endif %}>Inderlok</option>
-        <option value="janakpuri" {% if selected_center == "janakpuri" %}selected{% endif %}>Janakpuri</option>
-        <option value="karkardooma" {% if selected_center == "karkardooma" %}selected{% endif %}>Karkardooma</option>
+        <option value="inderlok">Inderlok</option>
+        <option value="janakpuri">Janakpuri</option>
+        <option value="karkardooma">Karkardooma</option>
     </select>
 
-    <button type="submit">Apply Filters</button>
-    <a href="{% url 'download' %}"><button type="button">Clear</button></a>
-</form>
+    <button onclick="clearFilters()" style="padding:8px 15px; background:#f44336; color:white; border:none; border-radius:4px;">Clear</button>
+    <span id="loader" style="display:none; color:#1976d2;">Loading...</span>
+</div>
 
-<!-- Simple Table -->
-<div style="overflow-x: auto;">
-    <table border="1" style="width:100%; border-collapse:collapse; font-size:14px;">
+<!-- Table -->
+<div style="overflow-x:auto;">
+    <table border="1" style="width:100%; border-collapse:collapse; font-size:13px;">
         <thead style="background:#1976d2; color:white;">
             <tr>
-                <th>Course Category</th>
-                <th>Course Name</th>
-                <th>Center</th>
-                <th>Session</th>
-                <th colspan="3">GENERAL</th>
-                <th colspan="3">OBC</th>
-                <th colspan="3">SC</th>
-                <th colspan="3">ST</th>
-                <th colspan="3">PWD</th>
-                <th>Total</th>
+                <th>Category</th><th>Course</th><th>Center</th><th>Session</th>
+                <th colspan="3">GENERAL</th><th colspan="3">OBC</th><th colspan="3">SC</th><th colspan="3">ST</th><th colspan="3">PWD</th>
             </tr>
             <tr>
                 <th colspan="4"></th>
-                <th>Trained</th><th>Certified</th><th>Placed</th>
-                <th>Trained</th><th>Certified</th><th>Placed</th>
-                <th>Trained</th><th>Certified</th><th>Placed</th>
-                <th>Trained</th><th>Certified</th><th>Placed</th>
-                <th>Trained</th><th>Certified</th><th>Placed</th>
-                <th></th>
+                <th>T</th><th>C</th><th>P</th><th>T</th><th>C</th><th>P</th><th>T</th><th>C</th><th>P</th><th>T</th><th>C</th><th>P</th><th>T</th><th>C</th><th>P</th>
             </tr>
         </thead>
-        <tbody>
-            {% for item in data %}
-            <tr>
-                <td>{{ item.category }}</td>
-                <td>{{ item.course_name }}</td>
-                <td>{{ item.center_name }}</td>
-                <td>{{ item.session }}</td>
-                
-                <!-- GENERAL -->
-                <td>{{ item.GENERAL.trained }}</td>
-                <td>{{ item.GENERAL.certified }}</td>
-                <td>{{ item.GENERAL.placed }}</td>
-                
-                <!-- OBC -->
-                <td>{{ item.OBC.trained }}</td>
-                <td>{{ item.OBC.certified }}</td>
-                <td>{{ item.OBC.placed }}</td>
-                
-                <!-- SC -->
-                <td>{{ item.SC.trained }}</td>
-                <td>{{ item.SC.certified }}</td>
-                <td>{{ item.SC.placed }}</td>
-                
-                <!-- ST -->
-                <td>{{ item.ST.trained }}</td>
-                <td>{{ item.ST.certified }}</td>
-                <td>{{ item.ST.placed }}</td>
-                
-                <!-- PWD -->
-                <td>{{ item.PWD.trained }}</td>
-                <td>{{ item.PWD.certified }}</td>
-                <td>{{ item.PWD.placed }}</td>
-                
-                <!-- Total -->
-                <td>{{ item.GENERAL.total|add:item.OBC.total|add:item.SC.total|add:item.ST.total|add:item.PWD.total }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="23" style="text-align:center; padding:20px;">No data found</td>
-            </tr>
-            {% endfor %}
+        <tbody id="tbody">
+            <tr><td colspan="19" style="text-align:center;">Loading...</td></tr>
         </tbody>
-        <tfoot style="background:#e3f2fd; font-weight:bold;">
-            <tr>
-                <td colspan="4"><b>TOTAL</b></td>
-                
-                <!-- GENERAL Totals -->
-                <td>{{ totals.GENERAL.trained }}</td>
-                <td>{{ totals.GENERAL.certified }}</td>
-                <td>{{ totals.GENERAL.placed }}</td>
-                
-                <!-- OBC Totals -->
-                <td>{{ totals.OBC.trained }}</td>
-                <td>{{ totals.OBC.certified }}</td>
-                <td>{{ totals.OBC.placed }}</td>
-                
-                <!-- SC Totals -->
-                <td>{{ totals.SC.trained }}</td>
-                <td>{{ totals.SC.certified }}</td>
-                <td>{{ totals.SC.placed }}</td>
-                
-                <!-- ST Totals -->
-                <td>{{ totals.ST.trained }}</td>
-                <td>{{ totals.ST.certified }}</td>
-                <td>{{ totals.ST.placed }}</td>
-                
-                <!-- PWD Totals -->
-                <td>{{ totals.PWD.trained }}</td>
-                <td>{{ totals.PWD.certified }}</td>
-                <td>{{ totals.PWD.placed }}</td>
-                
-                <!-- Grand Total -->
-                <td>{{ totals.grand_total }}</td>
-            </tr>
-        </tfoot>
+        <tfoot id="tfoot"></tfoot>
     </table>
 </div>
 
-<!-- Export Button -->
-<div style="margin: 20px 0;">
-    <button onclick="exportTableToExcel()">Export to Excel</button>
-</div>
-
-<!-- Simple Summary -->
-<div style="margin-top: 20px; padding: 10px; background: #f5f5f5;">
-    <strong>Total Records: {{ totals.grand_total }}</strong>
+<!-- Export & Total -->
+<div style="margin:20px 0; display:flex; gap:20px; align-items:center;">
+    <button onclick="exportExcel()" style="padding:8px 20px; background:green; color:white; border:none; border-radius:4px;">Export Excel</button>
+    <span id="total" style="font-weight:bold;">Total: 0</span>
 </div>
 
 <script>
-function exportTableToExcel() {
-    var table = document.querySelector('table');
-    var html = table.outerHTML;
-    var blob = new Blob([html], {type: 'application/vnd.ms-excel'});
-    var link = document.createElement('a');
+document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    
+    document.getElementById("year").addEventListener("change", loadData);
+    document.getElementById("session").addEventListener("change", loadData);
+    document.getElementById("center").addEventListener("change", loadData);
+});
+
+function loadData() {
+    let year = document.getElementById("year").value;
+    let session = document.getElementById("session").value;
+    let center = document.getElementById("center").value;
+    
+    document.getElementById("loader").style.display = "inline";
+    document.getElementById("tbody").innerHTML = '<tr><td colspan="19" style="text-align:center;">Loading...</td></tr>';
+    
+    let url = new URL('/api/download-data/', window.location.origin);
+    if(year) url.searchParams.append('year', year);
+    if(session) url.searchParams.append('session', session);
+    if(center) url.searchParams.append('center', center);
+    
+    fetch(url)
+    .then(response => {
+        if(!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(data => {
+        displayData(data.results);
+        document.getElementById("loader").style.display = "none";
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById("tbody").innerHTML = '<tr><td colspan="19" style="text-align:center; color:red;">Error loading data</td></tr>';
+        document.getElementById("tfoot").innerHTML = '';
+        document.getElementById("total").innerText = 'Total: 0';
+        document.getElementById("loader").style.display = "none";
+    });
+}
+
+function displayData(results) {
+    let tbody = document.getElementById("tbody");
+    let tfoot = document.getElementById("tfoot");
+    let totalSpan = document.getElementById("total");
+    
+    if(!results || results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="19" style="text-align:center;">No data found</td></tr>';
+        tfoot.innerHTML = '';
+        totalSpan.innerText = 'Total: 0';
+        return;
+    }
+    
+    // Group data
+    let groups = {};
+    let totals = {
+        GENERAL: {t:0, c:0, p:0},
+        OBC: {t:0, c:0, p:0},
+        SC: {t:0, c:0, p:0},
+        ST: {t:0, c:0, p:0},
+        PWD: {t:0, c:0, p:0},
+        all: 0
+    };
+    
+    results.forEach(row => {
+        let key = row.course_category + '|' + row.course_name + '|' + row.center_name + '|' + row.session;
+        
+        if(!groups[key]) {
+            groups[key] = {
+                cat: row.course_category,
+                course: row.course_name,
+                center: row.center_name,
+                session: row.session,
+                GENERAL: {t:0, c:0, p:0},
+                OBC: {t:0, c:0, p:0},
+                SC: {t:0, c:0, p:0},
+                ST: {t:0, c:0, p:0},
+                PWD: {t:0, c:0, p:0}
+            };
+        }
+        
+        let caste = row.caste_category; // Should be GENERAL, OBC, SC, ST, PWD
+        if (groups[key][caste]) { // Ensure property exists
+            if(row.trained) {
+                groups[key][caste].t++;
+                totals[caste].t++;
+            }
+            if(row.certified) {
+                groups[key][caste].c++;
+                totals[caste].c++;
+            }
+            if(row.placed) {
+                groups[key][caste].p++;
+                totals[caste].p++;
+            }
+            totals.all++;
+        } else {
+            console.warn('Unknown caste:', caste);
+        }
+    });
+    
+    // Build rows
+    let html = '';
+    Object.values(groups).forEach(g => {
+        html += `<tr>
+            <td>${g.cat}</td>
+            <td>${g.course}</td>
+            <td>${g.center}</td>
+            <td>${g.session}</td>
+            <td>${g.GENERAL.t}</td><td>${g.GENERAL.c}</td><td>${g.GENERAL.p}</td>
+            <td>${g.OBC.t}</td><td>${g.OBC.c}</td><td>${g.OBC.p}</td>
+            <td>${g.SC.t}</td><td>${g.SC.c}</td><td>${g.SC.p}</td>
+            <td>${g.ST.t}</td><td>${g.ST.c}</td><td>${g.ST.p}</td>
+            <td>${g.PWD.t}</td><td>${g.PWD.c}</td><td>${g.PWD.p}</td>
+        </tr>`;
+    });
+    
+    tbody.innerHTML = html;
+    
+    // Footer
+    tfoot.innerHTML = `<tr style="background:#e3f2fd; font-weight:bold;">
+        <td colspan="4">TOTAL</td>
+        <td>${totals.GENERAL.t}</td><td>${totals.GENERAL.c}</td><td>${totals.GENERAL.p}</td>
+        <td>${totals.OBC.t}</td><td>${totals.OBC.c}</td><td>${totals.OBC.p}</td>
+        <td>${totals.SC.t}</td><td>${totals.SC.c}</td><td>${totals.SC.p}</td>
+        <td>${totals.ST.t}</td><td>${totals.ST.c}</td><td>${totals.ST.p}</td>
+        <td>${totals.PWD.t}</td><td>${totals.PWD.c}</td><td>${totals.PWD.p}</td>
+    </tr>`;
+    
+    totalSpan.innerText = 'Total: ' + totals.all;
+}
+
+function clearFilters() {
+    document.getElementById("year").value = "";
+    document.getElementById("session").value = "";
+    document.getElementById("center").value = "";
+    loadData();
+}
+
+function exportExcel() {
+    let table = document.querySelector('table');
+    let html = table.outerHTML;
+    let blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+    let link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'student_report.xls';
+    link.download = 'report.xls';
     link.click();
 }
 </script>
-
 {% endblock %}

@@ -3,11 +3,33 @@ from django.http import JsonResponse
 from .forms import StudentDataForm, ExcelUploadForm
 from .models import studentdata
 from django.contrib import messages
+from django.contrib.auth import authenticate , login , logout
+from django.contrib.auth.decorators import login_required
 import openpyxl
 
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')  # or any page you want
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
+    return render(request, 'login.html')
+
+# Logout view
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+@login_required(login_url='/login')
 def dashboard(request):
     return render(request, "dashboard.html")
 
+
+@login_required(login_url='/login')
 def upload(request):
     if request.method == 'POST':
         form = ExcelUploadForm(request.POST, request.FILES)
@@ -134,7 +156,7 @@ def upload(request):
         form = ExcelUploadForm()
 
     return render(request, 'upload.html', {'form': form})
-
+@login_required(login_url='/login')
 def filter_students(request):
     center = request.GET.get("center")
     mode = request.GET.get("mode")
@@ -197,7 +219,7 @@ def filter_students(request):
     
     return JsonResponse({"results": data})
 
-
+@login_required(login_url='/login')
 def download(request):
     # Get filter parameters
     year = request.GET.get("year", "")
@@ -287,3 +309,44 @@ def download(request):
                     'July', 'August', 'September', 'October', 'November', 'December'],
     }
     return render(request, 'download.html', context)
+
+from django.http import JsonResponse
+@login_required(login_url='/login')
+def api_download_data(request):
+    year = request.GET.get("year", "")
+    session = request.GET.get("session", "")
+    center = request.GET.get("center", "")
+
+    students = studentdata.objects.all()
+    
+    if year:
+        students = students.filter(session__icontains=year)
+    if session:
+        students = students.filter(session__icontains=session)
+    if center:
+        students = students.filter(center_name=center)
+
+    data = []
+    for s in students:
+        hours = s.course_hour
+        if hours > 500:
+            cat = "B - Long Term"
+        elif hours >= 90:
+            cat = "C - Short Term"
+        elif hours < 90:
+            cat = "D - Short Term"
+        else:
+            cat = "E - DLC"
+
+        data.append({
+            "course_category": cat,
+            "course_name": s.course_name,
+            "center_name": s.center_name,
+            "session": s.session,
+            "caste_category": s.caste_category,
+            "trained": s.trained,
+            "certified": s.certified,
+            "placed": s.placed,
+        })
+    
+    return JsonResponse({"results": data})
