@@ -74,8 +74,16 @@ th:hover {
             <tr>
 
     <th onclick="sortTable('roll_number')">Roll No <span id="sort-roll_number"></span></th>
+    <th onclick="sortTable('batch_code')">Batch Code <span id="sort-batch_code"></span></th>
     <th onclick="sortTable('name')">Name <span id="sort-name"></span></th>
     <th onclick="sortTable('course_name')">Course <span id="sort-course_name"></span></th>
+    <th onclick="sortTable('father_name')">Father <span id="sort-father_name"></span></th>
+    <th onclick="sortTable('mother_name')">Mother <span id="sort-mother_name"></span></th>
+    <th onclick="sortTable('dob')">DOB <span id="sort-dob"></span></th>
+    <th onclick="sortTable('gender')">Gender <span id="sort-gender"></span></th>
+    <th onclick="sortTable('address')">Address <span id="sort-address"></span></th>
+    <th onclick="sortTable('qualifications')">Qualifications <span id="sort-qualifications"></span></th>
+    <th onclick="sortTable('aadhaar')">Aadhaar <span id="sort-aadhaar"></span></th>
     <th onclick="sortTable('scheme')">Scheme <span id="sort-scheme"></span></th>
     <th onclick="sortTable('nsqf')">NSQF <span id="sort-nsqf"></span></th>
     <th onclick="sortTable('course_hour')">Hours <span id="sort-course_hour"></span></th>
@@ -85,6 +93,7 @@ th:hover {
     <th onclick="sortTable('caste_category')">Caste <span id="sort-caste_category"></span></th>
     <th onclick="sortTable('fee')">Fee <span id="sort-fee"></span></th>
     <th onclick="sortTable('claimable_amount')">Claimable <span id="sort-claimable_amount"></span></th>
+    <th onclick="sortTable('fee_date')">Fee Date <span id="sort-fee_date"></span></th>
     <th onclick="sortTable('trained')">Trained <span id="sort-trained"></span></th>
     <th onclick="sortTable('certified')">Certified <span id="sort-certified"></span></th>
     <th onclick="sortTable('placed')">Placed <span id="sort-placed"></span></th>
@@ -113,6 +122,14 @@ th:hover {
 
         <div class="modal-body">
             <div class="mfield"><label>Name</label><input id="m_name" class="minput"></div>
+            <div class="mfield"><label>Batch Code</label><input id="m_batch_code" class="minput" style="text-transform: uppercase;"></div>
+            <div class="mfield"><label>Father name</label><input id="m_father_name" class="minput"></div>
+            <div class="mfield"><label>Mother name</label><input id="m_mother_name" class="minput"></div>
+            <div class="mfield"><label>DOB</label><input id="m_dob" class="minput" type="date"></div>
+            <div class="mfield"><label>Gender</label><select id="m_gender" class="minput"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+            <div class="mfield"><label>Address</label><input id="m_address" class="minput"></div>
+            <div class="mfield"><label>Qualifications</label><input id="m_qualifications" class="minput"></div>
+            <div class="mfield"><label>Aadhaar</label><input id="m_aadhaar" class="minput" maxlength="12" pattern="\d*"></div>
             <div class="mfield"><label>Course name</label><input id="m_course_name" class="minput"></div>
             <div class="mfield"><label>Scheme</label><input id="m_scheme" class="minput"></div>
             <div class="mfield"><label>NSQF level</label><input id="m_nsqf" class="minput" placeholder="e.g. Level 4 — blank if Non-NSQF"></div>
@@ -143,7 +160,42 @@ th:hover {
                     <option value="PWD">PWD</option>
                 </select>
             </div>
-            <div class="mfield"><label>Session</label><input id="m_session" class="minput" placeholder="JAN-2024"></div>
+            <div class="mfield"><label>Fee Date</label><input id="m_fee_date" class="minput" type="date"></div>
+            <div class="mfield">
+                <label>Session (Month/Year)</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="m_session_month" class="minput">
+                        <option value="">Month</option>
+                        <option value="JAN">JAN</option>
+                        <option value="FEB">FEB</option>
+                        <option value="MAR">MAR</option>
+                        <option value="APR">APR</option>
+                        <option value="MAY">MAY</option>
+                        <option value="JUN">JUN</option>
+                        <option value="JUL">JUL</option>
+                        <option value="AUG">AUG</option>
+                        <option value="SEP">SEP</option>
+                        <option value="OCT">OCT</option>
+                        <option value="NOV">NOV</option>
+                        <option value="DEC">DEC</option>
+                    </select>
+                    <select id="m_session_year" class="minput">
+                        <option value="">Year</option>
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                </div>
+                <input id="m_session" class="minput" style="display:none;" placeholder="JAN-2024">
+            </div>
             <div class="mfield">
                 <label>Trained</label>
                 <select id="m_trained" class="minput">
@@ -230,8 +282,16 @@ function displayRow(s, i) {
 
     return `<tr id="row-${i}" data-id="${s.id}">
         <td>${s.roll_number || '-'}</td>
+        <td>${(s.batch_code || '').toUpperCase() || '-'}</td>
         <td>${s.name}</td>
         <td>${s.course_name}</td>
+        <td>${s.father_name || '-'}</td>
+        <td>${s.mother_name || '-'}</td>
+        <td>${s.dob || '-'}</td>
+        <td>${s.gender || '-'}</td>
+        <td>${s.address || '-'}</td>
+        <td>${s.qualifications || '-'}</td>
+        <td>${s.aadhaar || '-'}</td>
         <td>${s.scheme || '-'}</td>
         <td>${s.nsqf || '<span class="badge-no">Non NSQF</span>'}</td>
         <td>${s.course_hour}</td>
@@ -241,6 +301,7 @@ function displayRow(s, i) {
         <td>${s.caste_category}</td>
         <td>₹${s.fee}</td>
         <td>₹${s.claimable_amount}</td>
+        <td>${s.fee_date || '-'}</td>
         <td>${trainedBadge}</td>
         <td>${certifiedBadge}</td>
         <td>${placedBadge}</td>
@@ -256,15 +317,36 @@ function openEditModal(i) {
     document.getElementById('modal-title').textContent = s.name;
     document.getElementById('modal-roll').textContent  = s.roll_number || '-';
     document.getElementById('m_name').value            = s.name;
+    document.getElementById('m_batch_code').value      = s.batch_code || '';
+    document.getElementById('m_father_name').value     = s.father_name || '';
+    document.getElementById('m_mother_name').value     = s.mother_name || '';
+    document.getElementById('m_dob').value             = s.dob || '';
+    document.getElementById('m_gender').value          = s.gender || 'Male';
+    document.getElementById('m_address').value         = s.address || '';
+    document.getElementById('m_qualifications').value  = s.qualifications || '';
+    document.getElementById('m_aadhaar').value         = s.aadhaar || '';
     document.getElementById('m_course_name').value     = s.course_name;
     document.getElementById('m_scheme').value          = s.scheme || '';
     document.getElementById('m_nsqf').value            = s.nsqf || '';
     document.getElementById('m_course_hour').value     = s.course_hour;
     document.getElementById('m_fee').value             = s.fee;
+    document.getElementById('m_fee_date').value        = s.fee_date || '';
     document.getElementById('m_center').value          = s.center_name;
     document.getElementById('m_mode').value            = s.mode;
     document.getElementById('m_caste').value           = s.caste_category;
     document.getElementById('m_session').value         = s.session;
+    
+    // Split session into month/year
+    if (s.session) {
+        const parts = s.session.split('-');
+        if (parts.length === 2) {
+            document.getElementById('m_session_month').value = parts[0];
+            document.getElementById('m_session_year').value = parts[1];
+        }
+    } else {
+        document.getElementById('m_session_month').value = '';
+        document.getElementById('m_session_year').value = '';
+    }
     document.getElementById('m_trained').value         = s.trained   ? 'true' : 'false';
     document.getElementById('m_certified').value       = s.certified ? 'true' : 'false';
     document.getElementById('m_placed').value          = s.placed    ? 'true' : 'false';
@@ -282,6 +364,14 @@ function saveModal() {
     const s = currentData[editingIndex];
     const payload = {
         name:           document.getElementById('m_name').value.trim(),
+        batch_code:     document.getElementById('m_batch_code').value.trim().toUpperCase(),
+        father_name:    document.getElementById('m_father_name').value.trim(),
+        mother_name:    document.getElementById('m_mother_name').value.trim(),
+        dob:            document.getElementById('m_dob').value,
+        gender:         document.getElementById('m_gender').value,
+        address:        document.getElementById('m_address').value.trim(),
+        qualifications: document.getElementById('m_qualifications').value.trim(),
+        aadhaar:        document.getElementById('m_aadhaar').value.trim(),
         course_name:    document.getElementById('m_course_name').value.trim(),
         scheme:         document.getElementById('m_scheme').value.trim(),
         nsqf:           document.getElementById('m_nsqf').value.trim(),
@@ -290,7 +380,8 @@ function saveModal() {
         center_name:    document.getElementById('m_center').value,
         mode:           document.getElementById('m_mode').value,
         caste_category: document.getElementById('m_caste').value,
-        session:        document.getElementById('m_session').value.trim(),
+        fee_date:       document.getElementById('m_fee_date').value,
+        session:        (document.getElementById('m_session_month').value + '-' + document.getElementById('m_session_year').value).trim(),
         trained:        document.getElementById('m_trained').value   === 'true',
         certified:      document.getElementById('m_certified').value === 'true',
         placed:         document.getElementById('m_placed').value    === 'true',
@@ -304,7 +395,14 @@ function saveModal() {
         },
         body: JSON.stringify(payload),
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(text => {
+                throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+            });
+        }
+        return res.json();
+    })
     .then(resp => {
         if (resp.success) {
             currentData[editingIndex] = {
@@ -322,7 +420,10 @@ function saveModal() {
             alert('Save failed: ' + (resp.error || 'Unknown error'));
         }
     })
-    .catch(err => { console.error(err); alert('Network error.'); });
+    .catch(err => {
+        console.error('Update student failed', err);
+        alert('Update failed: ' + err.message);
+    });
 }
 
 function getCookie(name) {

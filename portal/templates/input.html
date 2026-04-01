@@ -7,15 +7,16 @@
         <p class="text-muted small">Enter the required information to register a new profile.</p>
     </div>
 
-    <form method="POST" id="student_form" class="border rounded-3 p-4 p-md-5 bg-white" novalidate>
+    <form method="POST" id="student_form" class="border rounded-3 p-4 p-md-5 bg-white">
         {% csrf_token %}
         
         <div class="row g-x-5 g-y-4">
             {% for field in form %}
-                {% if field.name != "trained" and field.name != "certified" and field.name != "placed" %}
+                {% if field.name != "trained" and field.name != "certified" and field.name != "placed" and field.name != "session" %}
                     <div class="col-md-6 mb-3">
                         <label for="{{ field.id_for_label }}" class="form-label fw-bold small text-dark mb-1">
                             {{ field.label }}
+                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
                         </label>
 
                         {{ field }}
@@ -28,6 +29,28 @@
                     </div>
                 {% endif %}
             {% endfor %}
+
+            <div class="col-md-6 mb-3">
+                <label for="session_month" class="form-label fw-bold small text-dark mb-1">
+                    Session Month/Year
+                    <span class="text-danger">*</span>
+                </label>
+                <div class="d-flex gap-2">
+                    <select id="session_month" class="form-select" required>
+                        <option value="">Select month</option>
+                        {% for m in months %}
+                            <option value="{{ m }}">{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="session_year" class="form-select" required>
+                        <option value="">Select year</option>
+                        {% for y in years %}
+                            <option value="{{ y }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {{ form.session }}
+            </div>
 
             <div class="col-md-6 mb-3">
                 <label class="form-label fw-bold small text-dark mb-1">Status</label>
@@ -66,6 +89,28 @@
     </form>
 </div>
 
+<script>
+    function updateSessionInput() {
+        var month = document.getElementById('session_month').value;
+        var year = document.getElementById('session_year').value;
+        var sessionField = document.getElementById('id_session');
+        if (month && year) {
+            sessionField.value = month + '-' + year;
+        } else {
+            sessionField.value = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var month = document.getElementById('session_month');
+        var year = document.getElementById('session_year');
+        if (month && year) {
+            month.addEventListener('change', updateSessionInput);
+            year.addEventListener('change', updateSessionInput);
+        }
+    });
+</script>
+
 <style>
     /* Clean, Flat Input Design */
     input, select, textarea {
@@ -103,15 +148,66 @@
 
     .checkbox-group {
         background: #f8f9fa;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 15px;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .checkbox-group .form-check {
+    .form-check {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-check-label {
+        margin-left: 0.5rem;
         margin-bottom: 0;
+        cursor: pointer;
+        font-weight: 500;
     }
 
-    .checkbox-group .form-check-input {
-        margin-top: 0.15rem;
-        margin-right: 0.375rem;
+    /* Toggle Switch Styling */
+    .form-check-input {
+        width: 3.5rem;
+        height: 1.5rem;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background: #ccc;
+        border: none;
+        border-radius: 1rem;
+        position: relative;
+        transition: background 0.3s ease;
+        padding: 0.2rem;
+    }
+
+    .form-check-input::before {
+        content: '';
+        position: absolute;
+        width: 1.1rem;
+        height: 1.1rem;
+        border-radius: 50%;
+        background: white;
+        top: 0.2rem;
+        left: 0.2rem;
+        transition: left 0.3s ease;
+    }
+
+    .form-check-input:checked {
+        background: #28a745;
+    }
+
+    .form-check-input:checked::before {
+        left: 2.1rem;
+    }
+
+    .form-check-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
     }
 </style>
 {% endblock content %}

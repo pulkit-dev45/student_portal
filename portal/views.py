@@ -3,10 +3,11 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 import openpyxl
 from .forms import StudentDataForm
 from .forms import ExcelUploadForm
-from .models import studentdata
+from .models import studentdata, NsqfElectronics ,NsqfIT ,Dlc
 
 
 # ─── Auth ────────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ def logout_view(request):
 # ─── Dashboard ───────────────────────────────────────────────────────────────
 
 @login_required(login_url='/login')
+@ensure_csrf_cookie
 def dashboard(request):
     return render(request, 'dashboard.html')
 
@@ -239,7 +241,15 @@ def filter_students(request):
     {
         'id':              s.id,
         'roll_number':     s.roll_number,
+        'batch_code':      s.batch_code,
         'name':            s.name,
+        'father_name':     s.father_name,
+        'mother_name':     s.mother_name,
+        'dob':             s.dob.strftime('%Y-%m-%d') if s.dob else '',
+        'gender':          s.gender,
+        'address':         s.address,
+        'qualifications':  s.qualifications,
+        'aadhaar':         s.aadhaar,
         'course_name':     s.course_name,
         'scheme':          s.scheme,
         'nsqf':            s.nsqf,
@@ -250,6 +260,7 @@ def filter_students(request):
         'caste_category':  s.caste_category,
         'fee':             float(s.fee),
         'claimable_amount':float(s.claimable_amount),
+        'fee_date':        s.fee_date or '',
         'trained':         s.trained,
         'trained_date':    s.trained_date,
         'certified':       s.certified,
@@ -381,21 +392,76 @@ def update_student(request, student_id):
 
     from datetime import datetime
     current_month = datetime.now().strftime('%b').upper() + '-' + datetime.now().strftime('%Y')
-    # e.g. "MAR-2026"
 
-    body = json.loads(request.body)
+    try:
+        body = json.loads(request.body)
 
-    student.name           = body.get('name', student.name).strip()
-    student.course_name    = body.get('course_name', student.course_name).strip()
-    student.scheme         = body.get('scheme', student.scheme).strip()
-    student.nsqf           = body.get('nsqf', student.nsqf).strip()
-    student.course_hour    = int(body.get('course_hour', student.course_hour))
-    student.mode           = body.get('mode', student.mode)
-    student.caste_category = body.get('caste_category', student.caste_category)
-    student.center_name    = body.get('center_name', student.center_name)
-    student.fee            = float(body.get('fee', student.fee))
-    student.placed         = body.get('placed', student.placed)
-    student.session        = body.get('session', student.session).strip()
+        # Safe field updates with type handling
+        student.name = (body.get('name') or student.name or '').strip()
+        student.batch_code = (body.get('batch_code') or student.batch_code or '').strip().upper()
+        student.father_name = (body.get('father_name') or student.father_name or '').strip()
+        student.mother_name = (body.get('mother_name') or student.mother_name or '').strip()
+        student.dob = body.get('dob') or student.dob
+        student.gender = body.get('gender') or student.gender or 'Male'
+        student.address = (body.get('address') or student.address or '').strip()
+        student.qualifications = (body.get('qualifications') or student.qualifications or '').strip()
+        student.aadhaar = (body.get('aadhaar') or student.aadhaar or '').strip()
+        student.course_name = (body.get('course_name') or student.course_name or '').strip()
+        student.scheme = (body.get('scheme') or student.scheme or '').strip()
+        student.nsqf = (body.get('nsqf') or student.nsqf or '').strip()
+        
+        try:
+            student.course_hour = int(body.get('course_hour') or student.course_hour or 0)
+        except (ValueError, TypeError):
+            student.course_hour = 0
+            
+        student.mode = body.get('mode') or student.mode or 'offline'
+        student.caste_category = body.get('caste_category') or student.caste_category or 'GENERAL'
+        student.center_name = body.get('center_name') or student.center_name or 'inderlok'
+        
+        try:
+            student.fee = float(body.get('fee') or student.fee or 0)
+        except (ValueError, TypeError):
+            student.fee = 0.0
+            
+        student.fee_date = body.get('fee_date') or student.fee_date
+        student.placed = body.get('placed', student.placed)
+        student.session = (body.get('session') or student.session or '').strip()
+
+        # trained logic
+        new_trained = body.get('trained', student.trained)
+        if new_trained and not student.trained:
+            student.trained_date = current_month
+        elif not new_trained:
+            student.trained_date = ''
+        student.trained = new_trained
+
+        # certified logic
+        new_certified = body.get('certified', student.certified)
+        if new_certified and not student.certified:
+            student.certified_date = current_month
+        elif not new_certified:
+            student.certified_date = ''
+        student.certified = new_certified
+
+        student.save()
+
+        return JsonResponse({
+            'success': True,
+            'course_category': student.course_category,
+            'claimable_amount': float(student.claimable_amount),
+            'trained_date': student.trained_date,
+            'certified_date': student.certified_date,
+        })
+
+    except json.JSONDecodeError as e:
+        return JsonResponse({'success': False, 'error': f'Invalid JSON: {str(e)}'}, status=400)
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        tb = traceback.format_exc()
+        print(f"Update student error: {error_msg}\n{tb}")
+        return JsonResponse({'success': False, 'error': error_msg}, status=400)
 
     # trained logic
     new_trained = body.get('trained', student.trained)
@@ -434,7 +500,13 @@ def inputView(request):
     
     else:
         form=StudentDataForm()
-    return render(request,"input.html",{"form":form,})
+    
+    context = {
+        'form': form,
+        'months': ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+        'years': list(range(2020, 2031)),
+    }
+    return render(request,"input.html",context)
 
 from django import template
 
@@ -549,3 +621,9 @@ def overview_data(request):
         'sessions': sessions,
         'selected_session': selected_session,
     })
+
+def courses(request):
+    It=NsqfIT.objects.all()
+    elctro=NsqfElectronics.objects.all()
+    dlc=Dlc.objects.all()
+    return render(request,"view_courses.html",locals())

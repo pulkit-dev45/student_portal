@@ -37,7 +37,6 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
-
 /* ─── LAYOUT ─────────────────────────────────────────────── */
 .main {
     width: 100%;
@@ -115,8 +114,9 @@ body {
 }
 
 .left-nav .sidebar-toggle {
+    /* margin-top: 20px; */
     position: absolute;
-    /* top: 0.55rem; */
+    top: .94rem;
     /* right: -18px; */
     width: 36px;
     /* height: 36px; */
@@ -1554,7 +1554,7 @@ table td small {
 }
 
 .sidebar-toggle {
-    position: absolute;
+    position: fixed;
     top: 10px;
     right: 10px;
     width: 36px;

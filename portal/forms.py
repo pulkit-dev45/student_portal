@@ -1,5 +1,5 @@
 from django import forms
-from .models import studentdata
+from .models import studentdata 
 from datetime import datetime
 
 # ModelForm for studentdata
@@ -10,27 +10,36 @@ class StudentDataForm(forms.ModelForm):
     class Meta:
         model = studentdata
         fields = [
-            "session", "roll_number", "name", "course_name", 
+            "session", "batch_code", "roll_number", "name", "father_name", "mother_name", "dob", "gender", "address", "qualifications", "aadhaar", "course_name", 
             "course_hour", "scheme", "nsqf", "mode", 
-            "caste_category", "center_name", "fee", 
+            "caste_category", "center_name", "fee", "fee_date", 
             "trained", "certified", "placed"
         ]
         
         widgets = {
             # Date and Text inputs
-            "session": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "session": forms.HiddenInput(attrs={"id": "id_session"}),
+            "batch_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter Batch Code", "style": "text-transform: uppercase;", "required": "required"}),
             "roll_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter Roll Number"}),
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Full Name"}),
-            "course_name": forms.TextInput(attrs={"class": "form-control","placeholder": "Enter course name"}),
-            "course_hour": forms.NumberInput(attrs={"class": "form-control","placeholder": "Enter course hours"}),
-            "scheme": forms.TextInput(attrs={"class": "form-control","placeholder": "Enter Scheme"}),
-            "nsqf": forms.TextInput(attrs={"class": "form-control","placeholder": "Enter NSQF"}),
-            "fee": forms.NumberInput(attrs={"class": "form-control","placeholder": "Enter FEE"}),
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Full Name", "required": "required"}),
+            "father_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Father's Name", "required": "required"}),
+            "mother_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Mother's Name", "required": "required"}),
+            "dob": forms.DateInput(attrs={"class": "form-control", "type": "date", "required": "required"}),
+            "gender": forms.Select(attrs={"class": "form-select", "required": "required"}),
+            "address": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter Address", "required": "required"}),
+            "qualifications": forms.Select(attrs={"class": "form-select", "required": "required"}),
+            "aadhaar": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter Aadhaar", "maxlength": "12", "required": "required"}),
+            "course_name": forms.TextInput(attrs={"class": "form-control","placeholder": "Enter course name", "required": "required"}),
+            "course_hour": forms.NumberInput(attrs={"class": "form-control","placeholder": "Enter course hours", "required": "required"}),
+            "scheme": forms.TextInput(attrs={"class": "form-control","placeholder": "Enter Scheme", "required": "required"}),
+            "nsqf": forms.Select(attrs={"class": "form-select","placeholder": "Enter NSQF"}),
+            "fee": forms.NumberInput(attrs={"class": "form-control","placeholder": "Enter FEE", "required": "required"}),
 
             # Choice Fields (Dropdowns)
-            "mode": forms.Select(attrs={"class": "form-select"}),
-            "caste_category": forms.Select(attrs={"class": "form-select"}),
-            "center_name": forms.Select(attrs={"class": "form-select"}),
+            "mode": forms.Select(attrs={"class": "form-select", "required": "required"}),
+            "caste_category": forms.Select(attrs={"class": "form-select", "required": "required"}),
+            "center_name": forms.Select(attrs={"class": "form-select", "required": "required"}),
+            "fee_date": forms.DateInput(attrs={"class": "form-control", "type": "date", "required": "required"}),
 
             # Boolean Fields (Checkboxes)
             "trained": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -38,7 +47,10 @@ class StudentDataForm(forms.ModelForm):
             "placed": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
-# Simple form to upload Excel
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make roll_number optional
+        self.fields['roll_number'].required = False
 class ExcelUploadForm(forms.Form):
     # Generate years from 2020 to current year + 1
     current_year = datetime.now().year
